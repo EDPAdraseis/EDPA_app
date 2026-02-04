@@ -1,1 +1,287 @@
-<!DOCTYPE html><html lang="el"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Εθελοντική Δράση Πάρνηθας</title><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/><script src="https://unpkg.com/react@18/umd/react.production.min.js"></script><script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script><script src="https://unpkg.com/@babel/standalone/babel.min.js"></script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script type="module">import{initializeApp}from"https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";import{getAuth,signInAnonymously,signInWithCustomToken,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";import{getFirestore,collection,addDoc,onSnapshot,doc,deleteDoc,query}from"https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";const userCfg={apiKey:"AIzaSyDN40GJ9_-kWRh5422FV030Z-GST_T8fu8",authDomain:"edpa-a3b38.firebaseapp.com",projectId:"edpa-a3b38",storageBucket:"edpa-a3b38.firebasestorage.app",messagingSenderId:"242306230950",appId:"1:242306230950:web:4539b9eefe19f0e4b0a267"};const envCfg=typeof __firebase_config!=='undefined'?JSON.parse(__firebase_config):null;const config=(envCfg&&envCfg.apiKey)?envCfg:userCfg;const appId=typeof __app_id!=='undefined'?__app_id:'edpa-app';const app=initializeApp(config);const auth=getAuth(app);const db=getFirestore(app);window.fb={auth,db,signInAnonymously,signInWithCustomToken,onAuthStateChanged,collection,addDoc,onSnapshot,doc,deleteDoc,query,appId,token:typeof __initial_auth_token!=='undefined'?__initial_auth_token:null}</script><style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');html,body,#root{height:100%;margin:0;padding:0;overflow:hidden;background-color:#f8fafc;font-family:'Inter',sans-serif}#root{display:flex;flex-direction:column}.tab-content{width:100%;height:100%;display:flex;flex-direction:column;animation:f .3s ease-out}@keyframes f{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.btn-active:active{transform:scale(0.95)}</style></head><body><div id="root"></div><script type="text/babel">const{useState,useEffect,useRef}=React;const Icon=({n,s=24,c=""})=>{const i={tree:<path d="M12 2L5 12h4v8h6v-8h4L12 2z"/>,menu:<path d="M3 12h18M3 6h18M3 18h18"/>,heart:<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>,news:<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16L4 18V2"/>,trash:<path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>,map:<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6zm6-3v15m6-15v15"/>,calendar:<path d="M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>,settings:<g><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></g>,home:<g><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></g>,mail:<g><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/><rect x="2" y="5" width="20" height="14" rx="2"/></g>,x:<path d="M18 6 6 18M6 6l12 12"/>,pin:<g><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></g>,phone:<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>};return(<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}>{i[n]||i.tree}</svg>)};const App=()=>{const[tab,setTab]=useState('home');const[u,setU]=useState(null);const[actions,setActions]=useState([]);const[news,setNews]=useState([]);const[isAdmin,setIsAdmin]=useState(false);const[pass,setPass]=useState("");const[st,setSt]=useState(null);const[ld,setLd]=useState(false);const[fA,setFA]=useState({t:'',d:'',l:''});const[fN,setFN]=useState({t:'',s:''});const aid=window.fb?window.fb.appId:'edpa-app';const msg=(txt,tp='info')=>{setSt({txt,tp});setTimeout(()=>setSt(null),4000)};useEffect(()=>{const init=async()=>{if(window.fb){try{if(window.fb.token){await window.fb.signInWithCustomToken(window.fb.auth,window.fb.token)}else{await window.fb.signInAnonymously(window.fb.auth)}window.fb.onAuthStateChanged(window.fb.auth,user=>setU(user))}catch(e){console.error("Auth Error:",e);msg('Σφάλμα Σύνδεσης','error')}}};init()},[]);useEffect(()=>{if(!u||!window.fb)return;const getC=(n)=>window.fb.collection(window.fb.db,'artifacts',aid,'public','data',n);const u1=window.fb.onSnapshot(getC('actions'),s=>setActions(s.docs.map(d=>({id:d.id,...d.data()}))),e=>{console.error("Rules Error:",e);msg('Σφάλμα Δικαιωμάτων','error')});const u2=window.fb.onSnapshot(getC('news'),s=>setNews(s.docs.map(d=>({id:d.id,...d.data()}))));return()=>{u1();u2()}},[u]);const add=async(n,d)=>{if(!u)return msg('Αναμονή σύνδεσης','error');setLd(true);try{const ref=window.fb.collection(window.fb.db,'artifacts',aid,'public','data',n);await window.fb.addDoc(ref,d);msg('Αποθηκεύτηκε!','success');setLd(false);return true}catch(e){console.error(e);msg('Σφάλμα εγγραφής','error');setLd(false);return false}};const del=async(n,id)=>{try{const ref=window.fb.doc(window.fb.db,'artifacts',aid,'public','data',n,id);await window.fb.deleteDoc(ref);msg('Διαγράφηκε!')}catch(e){msg('Σφάλμα','error')}};return(<div className="flex flex-col h-screen w-full max-w-lg mx-auto bg-white relative overflow-hidden shadow-2xl"><header className="bg-emerald-800 text-white p-4 flex justify-between items-center z-50 shrink-0 shadow-lg"><div className="flex items-center gap-2"><Icon n="tree" s={28}/><div className="leading-tight"><div className="font-bold text-sm leading-none mb-0.5">Εθελοντική Δράση</div><div className="text-[10px] opacity-80 uppercase tracking-widest text-center">Πάρνηθας</div></div></div></header><main className="flex-1 overflow-hidden w-full bg-slate-50 relative"><div className="absolute inset-0 p-5 pb-24 w-full overflow-y-auto">{st&&(<div className={`fixed top-16 left-1/2 -translate-x-1/2 z-[100] px-6 py-2 rounded-full shadow-2xl text-white text-[10px] font-bold ${st.tp==='success'?'bg-emerald-600':'bg-red-600'}`}>{st.txt}</div>)}{!u&&(<div className="flex flex-col items-center justify-center h-full gap-3 text-emerald-800"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-800"></div><p className="text-[10px] font-bold uppercase tracking-widest text-center">Σύνδεση...</p></div>)}{u&&tab==='home'&&( <div className="tab-content space-y-6"><div className="bg-emerald-900 text-white rounded-3xl p-6 relative overflow-hidden shadow-xl shrink-0"><h2 className="text-2xl font-bold mb-1 italic uppercase tracking-tighter">Γίνε Εθελοντής!</h2><p className="text-emerald-100 text-xs mb-4">Προστάτεψε το βουνό μας μαζί μας.</p><button className="bg-white text-emerald-900 px-6 py-2 rounded-xl font-bold text-[10px] uppercase btn-active shadow-md">Συμμετοχή</button><div className="absolute -bottom-4 -right-4 opacity-30"><Icon n="heart" s={100}/></div></div><section><h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2 text-lg font-bold"><Icon n="news" s={20}/> Νέα</h3><div className="space-y-4">{news.length?news.map(n=>(<div key={n.id} className="bg-white p-4 rounded-2xl border border-slate-100 relative shadow-sm">{isAdmin&&<button onClick={()=>del('news',n.id)} className="absolute top-2 right-2 p-2 text-red-500"><Icon n="trash" s={16}/></button>}<span className="text-[9px] font-bold text-slate-400 uppercase">{n.date}</span><h4 className="font-bold text-slate-800 mt-1 leading-tight">{n.title}</h4><p className="text-xs text-slate-500 mt-1 leading-relaxed">{n.summary}</p></div>)):<p className="text-center text-slate-300 py-10 text-xs italic font-medium">Δεν υπάρχουν νέα ακόμα.</p>}</div></section></div> )}{u&&tab==='actions'&&( <div className="tab-content p-5 space-y-4"><h2 className="text-xl font-bold text-slate-800 mb-2 font-bold uppercase tracking-tight">Πρόγραμμα Δράσεων</h2>{actions.length?actions.map(a=>(<div key={a.id} className="bg-white p-4 rounded-2xl border border-slate-100 relative shadow-sm">{isAdmin&&<button onClick={()=>del('actions',a.id)} className="absolute top-2 right-2 p-2 text-red-500"><Icon n="trash" s={16}/></button>}<div className="flex justify-between mb-2"><span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg uppercase">{a.type}</span><span className="text-[10px] text-slate-400 font-bold">{a.date}</span></div><h4 className="font-bold text-slate-800 leading-tight">{a.title}</h4><p className="text-[10px] text-slate-500 mt-2 flex items-center gap-1 font-medium"><Icon n="pin" s={10}/> {a.location}</p></div>)):(<div className="py-20 text-center flex flex-col items-center"><div className="text-slate-200 mb-4 opacity-20"><Icon n="calendar" s={50}/></div><p className="text-slate-400 text-xs font-medium">Δεν υπάρχουν δράσεις.</p></div>)}</div> )}{u&&tab==='admin'&&( <div className="tab-content space-y-6"><h2 className="text-xl font-bold text-slate-800 px-1 font-bold">Διαχείριση</h2>{!isAdmin?( <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-4 text-center"><p className="text-xs text-slate-500 mb-2 uppercase tracking-widest leading-none font-bold">Είσοδος</p><input type="password" value={pass} onChange={e=>setPass(e.target.value)} className="w-full p-4 bg-slate-50 border rounded-2xl text-center text-lg tracking-widest outline-emerald-500" placeholder="****"/><button onClick={()=>{if(pass==='1234')setIsAdmin(true);else msg('Λάθος κωδικός!','error')}} className="w-full bg-emerald-800 text-white py-4 rounded-2xl font-bold btn-active uppercase text-xs shadow-lg">Είσοδος</button></div> ):( <div className="space-y-6 pb-24"><div className="bg-white p-5 rounded-3xl border border-slate-100 space-y-3 shadow-sm"><h4 className="font-bold text-[10px] uppercase text-slate-400 tracking-widest">Νέα Δράση</h4><input value={fA.t} onChange={e=>setFA({...fA,t:e.target.value})} placeholder="Τίτλος" className="w-full p-3 bg-slate-50 border rounded-xl text-sm outline-none"/><input value={fA.d} onChange={e=>setFA({...fA,d:e.target.value})} placeholder="Ημερομηνία" className="w-full p-3 bg-slate-50 border rounded-xl text-sm outline-none"/><input value={fA.l} onChange={e=>setFA({...fA,l:e.target.value})} placeholder="Τοποθεσία" className="w-full p-3 bg-slate-50 border rounded-xl text-sm outline-none"/><button disabled={ld} onClick={async()=>{if(!fA.t)return;if(await add('actions',{...fA,type:'Δράση'}))setFA({t:'',d:'',l:''})}} className="w-full bg-emerald-600 text-white py-3 rounded-xl text-xs font-bold btn-active uppercase shadow-md">{ld?'Αποθήκευση...':'Προσθήκη'}</button></div><div className="bg-white p-5 rounded-3xl border border-slate-100 space-y-3 shadow-sm"><h4 className="font-bold text-[10px] uppercase text-slate-400 tracking-widest">Νέα Ανακοίνωση</h4><input value={fN.t} onChange={e=>setFN({...fN,t:e.target.value})} placeholder="Τίτλος" className="w-full p-3 bg-slate-50 border rounded-xl text-sm outline-none"/><textarea value={fN.s} onChange={e=>setFN({...fN,s:e.target.value})} placeholder="Περιγραφή" className="w-full p-3 bg-slate-50 border rounded-xl text-sm h-24 outline-none"/><button disabled={ld} onClick={async()=>{if(!fN.t)return;if(await add('news',{...fN,date:'Σήμερα'}))setFN({t:'',s:''})}} className="w-full bg-emerald-600 text-white py-3 rounded-xl text-xs font-bold btn-active uppercase shadow-md">{ld?'Αποθήκευση...':'Προσθήκη'}</button></div><button onClick={()=>setIsAdmin(false)} className="w-full text-slate-400 text-[10px] py-4 uppercase font-bold underline tracking-widest">Έξοδος</button></div> )}</div> )}{tab==='contact'&&( <div className="tab-content space-y-6"><h2 className="text-xl font-bold text-slate-800 px-1 text-center font-bold">Επικοινωνία</h2><div className="bg-emerald-50 p-10 rounded-[3rem] text-center border border-emerald-100 w-full space-y-6 shadow-inner"><div className="text-emerald-700 mx-auto mb-2"><Icon n="mail" s={48}/></div><div className="text-emerald-900 font-bold text-2xl tracking-tighter font-bold">210 24XXXXX</div><p className="text-xs text-slate-500 italic px-4 leading-relaxed">Πληροφορίες εγγραφής μελών ή εθελοντικών περιπολιών.</p><button className="w-full bg-emerald-800 text-white py-4 rounded-2xl font-bold shadow-lg btn-active uppercase text-xs">Κλήση Τώρα</button></div></div> )}</div></main><footer className="fixed bottom-0 left-0 right-0 z-50 max-w-lg mx-auto bg-white/95 backdrop-blur-xl border-t border-slate-100 p-3 safe-area shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.05)] shrink-0"><div className="flex justify-around items-end h-14"><button onClick={()=>setTab('home')} className={`flex flex-col items-center gap-1 w-14 transition-all ${tab==='home'?'text-emerald-700 font-bold scale-110':'text-slate-400'}`}><Icon n="home" s={22}/><span className="text-[9px]">Αρχική</span></button><button onClick={()=>setTab('actions')} className={`flex flex-col items-center gap-1 w-14 transition-all ${tab==='actions'?'text-emerald-700 font-bold scale-110':'text-slate-400'}`}><Icon n="calendar" s={22}/><span className="text-[9px]">Δράσεις</span></button><button onClick={()=>setTab('admin')} className={`flex flex-col items-center gap-1 w-14 transition-all ${tab==='admin'?'text-emerald-700 font-bold scale-110':'text-slate-400'}`}><Icon n="settings" s={22}/><span className="text-[9px]">Admin</span></button><button onClick={()=>setTab('contact')} className={`flex flex-col items-center gap-1 w-14 transition-all ${tab==='contact'?'text-emerald-700 font-bold scale-110':'text-slate-400'}`}><Icon n="mail" s={22}/><span className="text-[9px]">Επαφή</span></button></div></footer></div>)};const root=ReactDOM.createRoot(document.getElementById('root'));root.render(<App/>);</script></body></html>
+<!DOCTYPE html><html lang="el"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Εθελοντική Δράση Πάρνηθας</title><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/><script src="https://unpkg.com/react@18/umd/react.production.min.js"></script><script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script><script src="https://unpkg.com/@babel/standalone/babel.min.js"></script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+// --- FIREBASE INITIALIZATION ---
+const userCfg = {
+    apiKey: "AIzaSyDN40GJ9_-kWRh5422FV030Z-GST_T8fu8",
+    authDomain: "edpa-a3b38.firebaseapp.com",
+    projectId: "edpa-a3b38",
+    storageBucket: "edpa-a3b38.firebasestorage.app",
+    messagingSenderId: "242306230950",
+    appId: "1:242306230950:web:4539b9eefe19f0e4b0a267"
+};
+
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userCfg;
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'edpa-app';
+const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+try {
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    
+    // Expose to window for React component
+    window.fb = { auth, db, signInAnonymously, signInWithCustomToken, onAuthStateChanged, collection, addDoc, onSnapshot, doc, deleteDoc, query, appId, initialToken };
+} catch (e) {
+    console.error("Firebase Init Error:", e);
+}
+</script><style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');html,body,#root{height:100%;margin:0;padding:0;overflow:hidden;background-color:#f8fafc;font-family:'Inter',sans-serif}#root{display:flex;flex-direction:column}.tab-content{width:100%;height:100%;display:flex;flex-direction:column;animation:fade .3s ease-out}@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.btn-active:active{transform:scale(0.95)}</style></head><body><div id="root"></div><script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const Icon = ({ n, s = 24, c = "" }) => {
+    const i = {
+        tree: <path d="M12 2L5 12h4v8h6v-8h4L12 2z"/>,
+        menu: <path d="M3 12h18M3 6h18M3 18h18"/>,
+        heart: <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>,
+        news: <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16L4 18V2"/>,
+        trash: <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>,
+        map: <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6zm6-3v15m6-15v15"/>,
+        calendar: <path d="M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>,
+        settings: <g><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1-2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></g>,
+        home: <g><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></g>,
+        mail: <g><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/><rect x="2" y="5" width="20" height="14" rx="2"/></g>,
+        x: <path d="M18 6 6 18M6 6l12 12"/>,
+        pin: <g><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></g>
+    };
+    return (
+        <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}>
+            {i[n] || i.tree}
+        </svg>
+    );
+};
+
+const App = () => {
+    const [tab, setTab] = useState('home');
+    const [user, setUser] = useState(null);
+    const [actions, setActions] = useState([]);
+    const [news, setNews] = useState([]);
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [pass, setPass] = useState("");
+    const [status, setStatus] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [formAction, setFormAction] = useState({ t: '', d: '', l: '' });
+    const [formNews, setFormNews] = useState({ t: '', s: '' });
+
+    const appId = window.fb?.appId || 'edpa-app';
+
+    const msg = (txt, tp = 'info') => {
+        setStatus({ txt, tp });
+        setTimeout(() => setStatus(null), 4000);
+    };
+
+    // (1) Handle Authentication FIRST
+    useEffect(() => {
+        if (!window.fb) return;
+        const initAuth = async () => {
+            try {
+                if (window.fb.initialToken) {
+                    await window.fb.signInWithCustomToken(window.fb.auth, window.fb.initialToken);
+                } else {
+                    await window.fb.signInAnonymously(window.fb.auth);
+                }
+            } catch (e) {
+                console.error("Auth Error:", e);
+                // Fallback to anonymous if custom token fails
+                try { await window.fb.signInAnonymously(window.fb.auth); } catch(err) {}
+            }
+        };
+        initAuth();
+        const unsubscribe = window.fb.onAuthStateChanged(window.fb.auth, (u) => {
+            console.log("User State:", u?.uid);
+            setUser(u);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    // (2) Fetch Data ONLY after user is set
+    useEffect(() => {
+        if (!user || !window.fb) return;
+        
+        const getC = (n) => window.fb.collection(window.fb.db, 'artifacts', appId, 'public', 'data', n);
+
+        const u1 = window.fb.onSnapshot(getC('actions'), 
+            s => setActions(s.docs.map(d => ({ id: d.id, ...d.data() }))),
+            e => { console.error("Permission Error:", e); msg('Σφάλμα Δικαιωμάτων', 'error'); }
+        );
+
+        const u2 = window.fb.onSnapshot(getC('news'), 
+            s => setNews(s.docs.map(d => ({ id: d.id, ...d.data() }))),
+            e => console.error("Permission Error News:", e)
+        );
+
+        return () => { u1(); u2(); };
+    }, [user, appId]);
+
+    const handleAdd = async (n, d) => {
+        if (!user) return msg('Περιμένετε τη σύνδεση...', 'error');
+        setLoading(true);
+        try {
+            const ref = window.fb.collection(window.fb.db, 'artifacts', appId, 'public', 'data', n);
+            await window.fb.addDoc(ref, d);
+            msg('Αποθηκεύτηκε!', 'success');
+            setLoading(false);
+            return true;
+        } catch (e) {
+            console.error("Add Error:", e);
+            msg('Σφάλμα εγγραφής', 'error');
+            setLoading(false);
+            return false;
+        }
+    };
+
+    const handleDel = async (n, id) => {
+        try {
+            const ref = window.fb.doc(window.fb.db, 'artifacts', appId, 'public', 'data', n, id);
+            await window.fb.deleteDoc(ref);
+            msg('Διαγράφηκε!');
+        } catch (e) {
+            msg('Σφάλμα διαγραφής', 'error');
+        }
+    };
+
+    return (
+        <div className="flex flex-col h-screen w-full max-w-lg mx-auto bg-white relative overflow-hidden shadow-2xl">
+            <header className="bg-emerald-800 text-white p-4 flex justify-between items-center z-50 shrink-0 shadow-lg">
+                <div className="flex items-center gap-2">
+                    <Icon n="tree" s={28}/>
+                    <div className="leading-tight">
+                        <div className="font-bold text-sm leading-none mb-0.5">Εθελοντική Δράση</div>
+                        <div className="text-[10px] opacity-80 uppercase tracking-widest text-center">Πάρνηθας</div>
+                    </div>
+                </div>
+            </header>
+
+            <main className="flex-1 overflow-hidden w-full bg-slate-50 relative">
+                <div className="absolute inset-0 p-5 pb-24 w-full overflow-y-auto">
+                    {status && (
+                        <div className={`fixed top-16 left-1/2 -translate-x-1/2 z-[100] px-6 py-2 rounded-full shadow-2xl text-white text-[10px] font-bold ${status.tp === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
+                            {status.txt}
+                        </div>
+                    )}
+
+                    {!user && (
+                        <div className="flex flex-col items-center justify-center h-full gap-3 text-emerald-800">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-800"></div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-center">Σύνδεση...</p>
+                        </div>
+                    )}
+
+                    {user && tab === 'home' && (
+                        <div className="tab-content space-y-6">
+                            <div className="bg-emerald-900 text-white rounded-3xl p-6 relative overflow-hidden shadow-xl shrink-0">
+                                <h2 className="text-2xl font-bold mb-1 italic uppercase tracking-tighter">Γίνε Εθελοντής!</h2>
+                                <p className="text-emerald-100 text-xs mb-4">Προστάτεψε το βουνό μας μαζί μας.</p>
+                                <button className="bg-white text-emerald-900 px-6 py-2 rounded-xl font-bold text-[10px] uppercase btn-active shadow-md">Συμμετοχή</button>
+                                <div className="absolute -bottom-4 -right-4 opacity-30"><Icon n="heart" s={100}/></div>
+                            </div>
+                            <section>
+                                <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2 text-lg font-bold"><Icon n="news" s={20}/> Νέα</h3>
+                                <div className="space-y-4">
+                                    {news.length ? news.map(n => (
+                                        <div key={n.id} className="bg-white p-4 rounded-2xl border border-slate-100 relative shadow-sm">
+                                            {isAdmin && <button onClick={() => handleDel('news', n.id)} className="absolute top-2 right-2 p-2 text-red-500"><Icon n="trash" s={16}/></button>}
+                                            <span className="text-[9px] font-bold text-slate-400 uppercase">{n.date}</span>
+                                            <h4 className="font-bold text-slate-800 mt-1 leading-tight">{n.title}</h4>
+                                            <p className="text-xs text-slate-500 mt-1 leading-relaxed">{n.summary}</p>
+                                        </div>
+                                    )) : <p className="text-center text-slate-300 py-10 text-xs italic font-medium">Δεν υπάρχουν νέα ακόμα.</p>}
+                                </div>
+                            </section>
+                        </div>
+                    )}
+
+                    {user && tab === 'actions' && (
+                        <div className="tab-content p-5 space-y-4">
+                            <h2 className="text-xl font-bold text-slate-800 mb-2 font-bold uppercase tracking-tight">Πρόγραμμα Δράσεων</h2>
+                            {actions.length ? actions.map(a => (
+                                <div key={a.id} className="bg-white p-4 rounded-2xl border border-slate-100 relative shadow-sm">
+                                    {isAdmin && <button onClick={() => handleDel('actions', a.id)} className="absolute top-2 right-2 p-2 text-red-500"><Icon n="trash" s={16}/></button>}
+                                    <div className="flex justify-between mb-2">
+                                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg uppercase">{a.type}</span>
+                                        <span className="text-[10px] text-slate-400 font-bold">{a.date}</span>
+                                    </div>
+                                    <h4 className="font-bold text-slate-800 leading-tight">{a.title}</h4>
+                                    <p className="text-[10px] text-slate-500 mt-2 flex items-center gap-1 font-medium"><Icon n="pin" s={10}/> {a.location}</p>
+                                </div>
+                            )) : (
+                                <div className="py-20 text-center flex flex-col items-center">
+                                    <div className="text-slate-200 mb-4 opacity-20"><Icon n="calendar" s={50}/></div>
+                                    <p className="text-slate-400 text-xs font-medium">Δεν υπάρχουν δράσεις.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {user && tab === 'admin' && (
+                        <div className="tab-content space-y-6">
+                            <h2 className="text-xl font-bold text-slate-800 px-1 font-bold">Διαχείριση</h2>
+                            {!isAdmin ? (
+                                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-4 text-center">
+                                    <p className="text-xs text-slate-500 mb-2 uppercase tracking-widest leading-none font-bold">Είσοδος</p>
+                                    <input type="password" value={pass} onChange={e => setPass(e.target.value)} className="w-full p-4 bg-slate-50 border rounded-2xl text-center text-lg tracking-widest outline-emerald-500 shadow-inner" placeholder="****"/>
+                                    <button onClick={() => { if (pass === '1234') setIsAdmin(true); else msg('Λάθος κωδικός!', 'error') }} className="w-full bg-emerald-800 text-white py-4 rounded-2xl font-bold btn-active uppercase text-xs shadow-lg">Είσοδος</button>
+                                </div>
+                            ) : (
+                                <div className="space-y-6 pb-24">
+                                    <div className="bg-white p-5 rounded-3xl border border-slate-100 space-y-3 shadow-sm">
+                                        <h4 className="font-bold text-[10px] uppercase text-slate-400 tracking-widest">Νέα Δράση</h4>
+                                        <input value={formAction.t} onChange={e => setFormAction({ ...formAction, t: e.target.value })} placeholder="Τίτλος" className="w-full p-3 bg-slate-50 border rounded-xl text-sm outline-none"/>
+                                        <input value={formAction.d} onChange={e => setFormAction({ ...formAction, d: e.target.value })} placeholder="Ημερομηνία" className="w-full p-3 bg-slate-50 border rounded-xl text-sm outline-none"/>
+                                        <input value={formAction.l} onChange={e => setFormAction({ ...formAction, l: e.target.value })} placeholder="Τοποθεσία" className="w-full p-3 bg-slate-50 border rounded-xl text-sm outline-none"/>
+                                        <button disabled={loading} onClick={async () => { if (!formAction.t) return; if (await handleAdd('actions', { ...formAction, type: 'Δράση' })) setFormAction({ t: '', d: '', l: '' }) }} className="w-full bg-emerald-600 text-white py-3 rounded-xl text-xs font-bold btn-active uppercase shadow-md">{loading ? 'Αποθήκευση...' : 'Προσθήκη'}</button>
+                                    </div>
+                                    <div className="bg-white p-5 rounded-3xl border border-slate-100 space-y-3 shadow-sm">
+                                        <h4 className="font-bold text-[10px] uppercase text-slate-400 tracking-widest">Νέα Ανακοίνωση</h4>
+                                        <input value={formNews.t} onChange={e => setFormNews({ ...formNews, t: e.target.value })} placeholder="Τίτλος" className="w-full p-3 bg-slate-50 border rounded-xl text-sm outline-none"/>
+                                        <textarea value={formNews.s} onChange={e => setFormNews({ ...formNews, s: e.target.value })} placeholder="Περιγραφή" className="w-full p-3 bg-slate-50 border rounded-xl text-sm h-24 outline-none"/>
+                                        <button disabled={loading} onClick={async () => { if (!formNews.t) return; if (await handleAdd('news', { ...formNews, date: 'Σήμερα' })) setFormNews({ t: '', s: '' }) }} className="w-full bg-emerald-600 text-white py-3 rounded-xl text-xs font-bold btn-active uppercase shadow-md">{loading ? 'Αποθήκευση...' : 'Προσθήκη'}</button>
+                                    </div>
+                                    <button onClick={() => setIsAdmin(false)} className="w-full text-slate-400 text-[10px] py-4 uppercase font-bold underline tracking-widest">Έξοδος</button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {tab === 'contact' && (
+                        <div className="tab-content space-y-6">
+                            <h2 className="text-xl font-bold text-slate-800 px-1 text-center font-bold">Επικοινωνία</h2>
+                            <div className="bg-emerald-50 p-10 rounded-[3rem] text-center border border-emerald-100 w-full space-y-6 shadow-inner">
+                                <div className="text-emerald-700 mx-auto mb-2"><Icon n="mail" s={48}/></div>
+                                <div className="text-emerald-900 font-bold text-2xl tracking-tighter font-bold">210 24XXXXX</div>
+                                <p className="text-xs text-slate-500 italic px-4 leading-relaxed">Πληροφορίες εγγραφής μελών ή εθελοντικών περιπολιών.</p>
+                                <button className="w-full bg-emerald-800 text-white py-4 rounded-2xl font-bold shadow-lg btn-active uppercase text-xs">Κλήση Τώρα</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </main>
+
+            <footer className="fixed bottom-0 left-0 right-0 z-50 max-w-lg mx-auto bg-white/95 backdrop-blur-xl border-t border-slate-100 p-3 safe-area shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.05)] shrink-0">
+                <div className="flex justify-around items-end h-14">
+                    <button onClick={() => setTab('home')} className={`flex flex-col items-center gap-1 w-14 transition-all ${tab === 'home' ? 'text-emerald-700 font-bold scale-110' : 'text-slate-400'}`}>
+                        <Icon n="home" s={22}/>
+                        <span className="text-[9px]">Αρχική</span>
+                    </button>
+                    <button onClick={() => setTab('actions')} className={`flex flex-col items-center gap-1 w-14 transition-all ${tab === 'actions' ? 'text-emerald-700 font-bold scale-110' : 'text-slate-400'}`}>
+                        <Icon n="calendar" s={22}/>
+                        <span className="text-[9px]">Δράσεις</span>
+                    </button>
+                    <button onClick={() => setTab('admin')} className={`flex flex-col items-center gap-1 w-14 transition-all ${tab === 'admin' ? 'text-emerald-700 font-bold scale-110' : 'text-slate-400'}`}>
+                        <Icon n="settings" s={22}/>
+                        <span className="text-[9px]">Admin</span>
+                    </button>
+                    <button onClick={() => setTab('contact')} className={`flex flex-col items-center gap-1 w-14 transition-all ${tab === 'contact' ? 'text-emerald-700 font-bold scale-110' : 'text-slate-400'}`}>
+                        <Icon n="mail" s={22}/>
+                        <span className="text-[9px]">Επαφή</span>
+                    </button>
+                </div>
+            </footer>
+        </div>
+    );
+};
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script></body></html>
