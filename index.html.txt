@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Εθελοντική Δράση Πάρνηθας</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Core Dependencies -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background-color: #f8fafc; }
+        #root { height: 100vh; display: flex; flex-direction: column; }
+        .map-wrapper { position: relative; flex: 1; min-height: 350px; border-radius: 2rem; overflow: hidden; }
+        #map-display { position: absolute; inset: 0; height: 100%; width: 100%; z-index: 1; background: #e5e7eb; }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div class="flex items-center justify-center h-full flex-col gap-4 text-emerald-800">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-800"></div>
+            <p class="font-bold">Φόρτωση Εφαρμογής...</p>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Robust Icon Component with safety checks and PascalCase support
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const iconRef = useRef(null);
+            useEffect(() => {
+                if (iconRef.current && window.lucide) {
+                    // Try to find the icon data (PascalCase is standard for Lucide UMD)
+                    const iconData = window.lucide.icons[name] || 
+                                   window.lucide.icons[name.charAt(0).toUpperCase() + name.slice(1)] ||
+                                   window.lucide.icons['HelpCircle'];
+                    
+                    if (iconData && typeof iconData.toSvg === 'function') {
+                        iconRef.current.innerHTML = iconData.toSvg({
+                            width: size,
+                            height: size,
+                            class: className,
+                            'stroke-width': 2
+                        });
+                    }
+                }
+            }, [name, size, className]);
+            return <span ref={iconRef} className={`inline-flex items-center justify-center ${className}`} />;
+        };
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('home');
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const [notifications] = useState(2);
+            const [selectedLocation, setSelectedLocation] = useState(null);
+            const leafletMap = useRef(null);
+            const userMarkerRef = useRef(null);
+
+            const locations = [
+                { id: 1, name: "Θρακομακεδόνες (Βάση)", lat: 38.1415, lng: 23.7645, desc: "Σημείο συνάντησης στην κεντρική πλατεία για καθαρισμούς μονοπατιών." },
+                { id: 2, name: "Καταφύγιο Μπάφι", lat: 38.1677, lng: 23.7258, desc: "Κεντρικό ορειβατικό καταφύγιο. Σημείο συγκέντρωσης για αναδασώσεις." },
+                { id: 3, name: "Καταφύγιο Φλαμπούρι", lat: 38.1722, lng: 23.7431, desc: "Δευτερεύον σημείο συνάντησης και παρατήρησης." },
+                { id: 4, name: "Θέση Μόλα", lat: 38.1845, lng: 23.7165, desc: "Περιοχή υψηλής προστασίας. Χώρος δράσεων αναδάσωσης." },
+                { id: 5, name: "Τελεφερίκ / Καζίνο", lat: 38.1511, lng: 23.7250, desc: "Σημείο εκκίνησης περιπολιών πυρασφάλειας." }
+            ];
+
+            const news = [
+                { id: 1, title: "Νέος εξοπλισμός πυρασφάλειας", summary: "Παραλαβή νέων ασυρμάτων για τις περιπολίες.", date: "2 ημέρες πριν" },
+                { id: 2, title: "Επιτυχής δενδροφύτευση", summary: "Φυτεύτηκαν 500 έλατα στην περιοχή Μόλα.", date: "1 εβδομάδα πριν" }
+            ];
+
+            // Map Management
+            useEffect(() => {
+                if (activeTab === 'map') {
+                    const initTimer = setTimeout(() => {
+                        const mapDiv = document.getElementById('map-display');
+                        if (!mapDiv) return;
+
+                        if (leafletMap.current) {
+                            leafletMap.current.remove();
+                        }
+                        
+                        const map = L.map('map-display', { zoomControl: false }).setView([38.16, 23.74], 12);
+                        leafletMap.current = map;
+
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; OSM'
+                        }).addTo(map);
+
+                        locations.forEach(loc => {
+                            const marker = L.marker([loc.lat, loc.lng]).addTo(map);
+                            marker.on('click', () => setSelectedLocation(loc));
+                        });
+
+                        const fixSize = () => { map.invalidateSize(); };
+                        const observer = new ResizeObserver(fixSize);
+                        observer.observe(mapDiv);
+                        
+                        [100, 400, 800].forEach(d => setTimeout(fixSize, d));
+                        
+                        return () => {
+                            observer.disconnect();
+                        };
+                    }, 100);
+                    return () => clearTimeout(initTimer);
+                }
+            }, [activeTab]);
+
+            useEffect(() => {
+                if (leafletMap.current) {
+                    const timer = setTimeout(() => leafletMap.current.invalidateSize(), 300);
+                    return () => clearTimeout(timer);
+                }
+            }, [selectedLocation]);
+
+            const handleLocateMe = () => {
+                if (!leafletMap.current) return;
+                leafletMap.current.locate({ setView: true, maxZoom: 15 });
+                leafletMap.current.once('locationfound', (e) => {
+                    if (userMarkerRef.current) leafletMap.current.removeLayer(userMarkerRef.current);
+                    userMarkerRef.current = L.circleMarker(e.latlng, {
+                        radius: 8, fillColor: "#3b82f6", color: "#fff", weight: 2, fillOpacity: 0.8
+                    }).addTo(leafletMap.current);
+                });
+            };
+
+            return (
+                <div className="flex flex-col h-full max-w-lg mx-auto bg-white shadow-2xl relative">
+                    {/* Header */}
+                    <header className="bg-emerald-800 text-white p-4 flex justify-between items-center shadow-lg z-50">
+                        <div className="flex items-center gap-2">
+                            <Icon name="TreePine" size={32} className="text-emerald-300" />
+                            <div className="leading-tight">
+                                <div className="font-bold text-base">Εθελοντική Δράση</div>
+                                <div className="text-[10px] opacity-80 uppercase tracking-widest">Πάρνηθας</div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="relative cursor-pointer">
+                                <Icon name="Bell" size={24} />
+                                {notifications > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-red-500 text-[8px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                                        {notifications}
+                                    </span>
+                                )}
+                            </div>
+                            <button onClick={() => setIsMenuOpen(true)} className="p-1 active:bg-emerald-700 rounded-lg transition-colors">
+                                <Icon name="Menu" size={28} />
+                            </button>
+                        </div>
+                    </header>
+
+                    {/* Main Content Area */}
+                    <main className="flex-1 overflow-y-auto p-5 pb-28">
+                        {activeTab === 'home' && (
+                            <div className="space-y-6 animate-fade-in">
+                                <div className="bg-emerald-900 text-white rounded-3xl p-6 relative overflow-hidden shadow-xl">
+                                    <div className="relative z-10">
+                                        <h2 className="text-2xl font-bold mb-2 uppercase italic tracking-tight">Γίνε Εθελοντής!</h2>
+                                        <p className="text-emerald-100 text-sm mb-5 leading-relaxed max-w-[85%]">Η Πάρνηθα μας χρειάζεται όλους. Έλα στην ομάδα μας σήμερα και κάνε τη διαφορά.</p>
+                                        <button className="bg-white text-emerald-900 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider active:scale-95 transition-transform shadow-md">Συμμετοχή</button>
+                                    </div>
+                                    <Icon name="Heart" size={140} className="absolute -bottom-8 -right-8 text-emerald-800 opacity-30 rotate-12" />
+                                </div>
+                                <section>
+                                    <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2 text-lg">
+                                        <Icon name="Newspaper" size={20} className="text-emerald-600" /> Νέα & Ανακοινώσεις
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {news.map(item => (
+                                            <div key={item.id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">{item.date}</span>
+                                                <h4 className="font-bold text-slate-800 leading-tight">{item.title}</h4>
+                                                <p className="text-xs text-slate-500 mt-2 leading-relaxed">{item.summary}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                            </div>
+                        )}
+
+                        {activeTab === 'map' && (
+                            <div className="h-full flex flex-col animate-fade-in overflow-hidden">
+                                <h2 className="text-xl font-bold text-slate-800 mb-4 px-1">Χάρτης Σημείων</h2>
+                                <div className="map-wrapper border-2 border-emerald-100 shadow-inner">
+                                    <div id="map-display"></div>
+                                    <button onClick={handleLocateMe} className="absolute top-4 right-4 z-[20] bg-white p-3 rounded-full shadow-xl text-emerald-700 active:scale-90 border border-emerald-50 transition-transform">
+                                        <Icon name="LocateFixed" size={24} />
+                                    </button>
+                                    {selectedLocation && (
+                                        <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 z-[30] border border-emerald-100 animate-fade-in">
+                                            <div className="flex justify-between items-start mb-3">
+                                                <div className="flex items-center gap-2">
+                                                    <Icon name="MapPin" size={18} className="text-emerald-600" />
+                                                    <h3 className="font-bold text-emerald-900 leading-tight">{selectedLocation.name}</h3>
+                                                </div>
+                                                <button onClick={() => setSelectedLocation(null)} className="p-1 hover:bg-slate-100 rounded-full transition-colors">
+                                                    <Icon name="X" size={20} className="text-slate-400" />
+                                                </button>
+                                            </div>
+                                            <p className="text-xs text-slate-600 mb-5 leading-relaxed">{selectedLocation.desc}</p>
+                                            <button className="w-full bg-emerald-700 text-white py-3.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md active:bg-emerald-800 transition-colors">
+                                                <Icon name="Navigation" size={16} /> Πλοήγηση Σημείου
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'actions' && (
+                            <div className="space-y-4 animate-fade-in">
+                                <h2 className="text-xl font-bold text-slate-800 mb-2 px-1">Πρόγραμμα Δράσεων</h2>
+                                <div className="bg-white rounded-3xl border-2 border-dashed border-slate-200 p-10 text-center text-slate-400">
+                                    <Icon name="Calendar" size={48} className="mx-auto mb-4 opacity-20" />
+                                    <p className="text-sm font-medium">Δεν υπάρχουν νέες δράσεις για αυτή την εβδομάδα.</p>
+                                    <p className="text-[10px] mt-1">Ελέγξτε ξανά σύντομα!</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'contact' && (
+                            <div className="space-y-6 animate-fade-in">
+                                <h2 className="text-xl font-bold text-slate-800 mb-2 px-1">Επικοινωνία</h2>
+                                <div className="bg-emerald-50 p-10 rounded-[3rem] text-center space-y-6 shadow-inner border border-emerald-100">
+                                    <div className="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                                        <Icon name="Phone" size={40} className="text-emerald-700" />
+                                    </div>
+                                    <div>
+                                        <div className="text-emerald-900 font-bold text-2xl tracking-tight">210 24XXXXX</div>
+                                        <div className="text-emerald-600 font-medium text-xs mt-1 uppercase tracking-widest">Γραμματεία Συλλόγου</div>
+                                    </div>
+                                    <p className="text-xs text-slate-500 italic leading-relaxed px-4">Για έκτακτα περιστατικά ή εγγραφές μελών, καλέστε μας καθημερινά 09:00 - 17:00.</p>
+                                    <button className="w-full bg-emerald-800 text-white py-4 rounded-2xl font-bold shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-2">
+                                        <Icon name="Mail" size={18} /> Στείλτε Μήνυμα
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+
+                    {/* Bottom Tab Bar */}
+                    <footer className="fixed bottom-0 left-0 right-0 z-50 max-w-lg mx-auto bg-white/90 backdrop-blur-xl border-t border-slate-100 p-3 safe-bottom shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.05)]">
+                        <div className="flex justify-around items-end h-16">
+                            <button onClick={() => setActiveTab('home')} className={`flex flex-col items-center gap-1 w-14 transition-all ${activeTab === 'home' ? 'text-emerald-700 font-bold scale-110' : 'text-slate-400 hover:text-slate-500'}`}>
+                                <Icon name="Home" size={24} />
+                                <span className="text-[9px]">Αρχική</span>
+                            </button>
+                            <button onClick={() => setActiveTab('actions')} className={`flex flex-col items-center gap-1 w-14 transition-all ${activeTab === 'actions' ? 'text-emerald-700 font-bold scale-110' : 'text-slate-400 hover:text-slate-500'}`}>
+                                <Icon name="Calendar" size={24} />
+                                <span className="text-[9px]">Δράσεις</span>
+                            </button>
+                            <button onClick={() => setActiveTab('map')} className="relative -top-8 transition-transform active:scale-90">
+                                <div className={`p-4 rounded-full shadow-2xl transition-all transform ${activeTab === 'map' ? 'bg-emerald-700 text-white ring-8 ring-emerald-50 scale-110' : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-200'}`}>
+                                    <Icon name="Map" size={28} />
+                                </div>
+                                <span className="text-[9px] font-bold text-emerald-800 block text-center mt-1">Χάρτης</span>
+                            </button>
+                            <button onClick={() => setActiveTab('contact')} className={`flex flex-col items-center gap-1 w-14 transition-all ${activeTab === 'contact' ? 'text-emerald-700 font-bold scale-110' : 'text-slate-400 hover:text-slate-500'}`}>
+                                <Icon name="Mail" size={24} />
+                                <span className="text-[9px]">Επαφή</span>
+                            </button>
+                        </div>
+                    </footer>
+
+                    {/* Menu Drawer */}
+                    {isMenuOpen && (
+                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] transition-opacity duration-300" onClick={() => setIsMenuOpen(false)}>
+                            <div className="absolute right-0 top-0 h-full w-72 bg-white p-8 shadow-2xl animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
+                                <div className="flex justify-between items-center mb-12">
+                                    <h3 className="font-bold text-slate-800 text-xl tracking-tight">Μενού</h3>
+                                    <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-slate-50 rounded-full transition-colors"><Icon name="X" size={28} className="text-slate-400" /></button>
+                                </div>
+                                <nav className="space-y-8 text-lg font-medium text-slate-700">
+                                    <div className="flex items-center gap-4 cursor-pointer hover:text-emerald-700 transition-colors"><Icon name="Users" size={24} className="text-emerald-600" /> Μέλη</div>
+                                    <div className="flex items-center gap-4 cursor-pointer hover:text-emerald-700 transition-colors"><Icon name="Info" size={24} className="text-emerald-600" /> Καταστατικό</div>
+                                    <div className="flex items-center gap-4 cursor-pointer hover:text-emerald-700 transition-colors"><Icon name="TreePine" size={24} className="text-emerald-600" /> Ο Δρυμός</div>
+                                    <div className="pt-8 border-t border-slate-100 text-red-600 font-bold flex items-center gap-4 cursor-pointer active:scale-95 transition-transform">
+                                        <Icon name="Phone" size={24} /> Έκτακτη Ανάγκη (199)
+                                    </div>
+                                </nav>
+                                <div className="absolute bottom-10 left-8 text-[10px] text-slate-300 font-mono tracking-widest uppercase">
+                                    v1.2.0 • EDPADRASEIS
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
